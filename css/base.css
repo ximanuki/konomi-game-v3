@@ -189,6 +189,15 @@ body {
   overflow: hidden;
 }
 
+/* メインコンテンツエリア */
+#main-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  /* ナビゲーションの高さ分余白を確保（navはposition: fixed） */
+  padding-bottom: var(--nav-height);
+}
+
 /* =====================================================
    iPhone SE2 小画面最適化 (375x667px)
    ===================================================== */
