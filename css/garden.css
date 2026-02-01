@@ -1,0 +1,384 @@
+/**
+ * まほうのにわ - 庭の表示CSS
+ *
+ * 庭のコンテナ、ビューポート、配置オブジェクトのスタイル
+ * iPhone SE2 (375x667px) 最適化
+ */
+
+/* =====================================================
+   庭コンテナ - 全体を包む要素
+   ===================================================== */
+.garden-container {
+  position: relative;
+  width: 100%;
+  height: calc(100dvh - var(--nav-height));
+  overflow: hidden;
+  background-color: var(--color-background);
+}
+
+/* =====================================================
+   庭ビューポート - スクロール・ズーム対象
+   ===================================================== */
+.garden-view {
+  position: absolute;
+  width: 1000px;  /* 庭の実サイズ（TECH_SPEC準拠） */
+  height: 800px;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: transform var(--transition-fast);
+}
+
+/* =====================================================
+   背景グラデーション - 時間帯で変化
+   ===================================================== */
+
+/* デフォルト（昼） */
+.garden-view {
+  background: linear-gradient(
+    180deg,
+    #87CEEB 0%,      /* 空色 */
+    #B5E7FF 30%,     /* 明るい空 */
+    #A8D9AB 50%,     /* 地平線付近の緑 */
+    var(--color-primary) 70%,  /* 草原の緑 */
+    var(--color-primary-dark) 100%  /* 地面 */
+  );
+}
+
+/* 朝 (6:00-10:00) */
+.garden-view.time-morning {
+  background: linear-gradient(
+    180deg,
+    #FFE4C4 0%,      /* オレンジがかった朝焼け */
+    #FFD4A0 20%,
+    #B5E7FF 50%,     /* 明るくなる空 */
+    #A8D9AB 70%,
+    var(--color-primary) 100%
+  );
+}
+
+/* 昼 (10:00-16:00) */
+.garden-view.time-afternoon {
+  background: linear-gradient(
+    180deg,
+    #87CEEB 0%,
+    #B5E7FF 30%,
+    #A8D9AB 50%,
+    var(--color-primary) 70%,
+    var(--color-primary-dark) 100%
+  );
+}
+
+/* 夕方 (16:00-20:00) */
+.garden-view.time-evening {
+  background: linear-gradient(
+    180deg,
+    #FF8C69 0%,      /* 夕焼けオレンジ */
+    #FFB088 20%,
+    #DDA0DD 40%,     /* 紫がかった空 */
+    #9B7BB8 60%,
+    var(--color-primary-dark) 80%,
+    #4A6741 100%     /* 暗くなる地面 */
+  );
+}
+
+/* 夜 (20:00-6:00) */
+.garden-view.time-night {
+  background: linear-gradient(
+    180deg,
+    #1a1a2e 0%,      /* 夜空 */
+    #2d2d44 30%,
+    #3d3d5c 50%,
+    #2d4a2d 70%,     /* 暗い草原 */
+    #1d3a1d 100%
+  );
+}
+
+/* =====================================================
+   グリッドオーバーレイ - デバッグ用（非表示デフォルト）
+   ===================================================== */
+.garden-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 50px 50px;  /* TECH_SPEC: 50pxグリッド */
+  transition: opacity var(--transition-normal);
+}
+
+/* デバッグモードでグリッド表示 */
+.garden-view.debug .garden-grid {
+  opacity: 1;
+}
+
+/* =====================================================
+   配置オブジェクト基本スタイル
+   ===================================================== */
+.garden-object {
+  position: absolute;
+  transform: translate(-50%, -100%);  /* 中央下基準 */
+  z-index: var(--z-objects);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--transition-fast);
+}
+
+.garden-object:active {
+  transform: translate(-50%, -100%) scale(0.95);
+}
+
+/* オブジェクト内の画像 */
+.garden-object img {
+  display: block;
+  max-width: none;
+  pointer-events: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* =====================================================
+   植物オブジェクト
+   ===================================================== */
+.garden-object.plant {
+  z-index: var(--z-objects);
+}
+
+/* 植物の成長ステージ */
+.garden-object.plant.stage-0 img {
+  /* 種：小さく表示 */
+  width: 24px;
+  height: 24px;
+}
+
+.garden-object.plant.stage-1 img {
+  /* 芽：少し大きく */
+  width: 32px;
+  height: 40px;
+}
+
+.garden-object.plant.stage-2 img {
+  /* つぼみ：中サイズ */
+  width: 48px;
+  height: 56px;
+}
+
+.garden-object.plant.stage-3 img {
+  /* 完成：フルサイズ */
+  width: 64px;
+  height: 72px;
+}
+
+/* 水が必要な植物 */
+.garden-object.plant.needs-water {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.garden-object.plant.needs-water::after {
+  content: '💧';
+  position: absolute;
+  top: -16px;
+  right: -8px;
+  font-size: 16px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+/* 成長中の植物 */
+.garden-object.plant.growing {
+  animation: grow 0.6s var(--transition-bounce);
+}
+
+/* =====================================================
+   住人オブジェクト
+   ===================================================== */
+.garden-object.resident {
+  z-index: var(--z-residents);
+}
+
+.garden-object.resident img {
+  width: 48px;
+  height: 48px;
+}
+
+/* 住人のアイドル状態（ふわふわ浮遊） */
+.garden-object.resident.idle {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 住人が幸せな時 */
+.garden-object.resident.happy::after {
+  content: '♡';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: var(--color-accent);
+  animation: float 1.5s ease-in-out infinite;
+}
+
+/* 住人が眠っている時（夜） */
+.garden-object.resident.sleeping {
+  opacity: 0.7;
+}
+
+.garden-object.resident.sleeping::after {
+  content: '💤';
+  position: absolute;
+  top: -16px;
+  right: -8px;
+  font-size: 12px;
+  animation: float 2s ease-in-out infinite;
+}
+
+/* なかよし度レベル表示 */
+.garden-object.resident .friendship-badge {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-white);
+  border-radius: var(--radius-full);
+  padding: 2px 6px;
+  font-size: var(--font-size-xs);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =====================================================
+   建物オブジェクト
+   ===================================================== */
+.garden-object.building {
+  z-index: calc(var(--z-objects) - 1);  /* 植物・住人より後ろ */
+}
+
+.garden-object.building img {
+  width: 80px;
+  height: 80px;
+}
+
+/* 大きな建物 */
+.garden-object.building.large img {
+  width: 120px;
+  height: 120px;
+}
+
+/* 建物のハイライト（タップ可能を示す） */
+.garden-object.building.interactive::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px dashed var(--color-tertiary);
+  border-radius: var(--radius-md);
+  opacity: 0;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* =====================================================
+   エフェクトオブジェクト
+   ===================================================== */
+.garden-object.effect {
+  z-index: var(--z-effects);
+  pointer-events: none;  /* エフェクトはタップ不可 */
+}
+
+/* キラキラエフェクト */
+.garden-object.effect.sparkle {
+  animation: sparkle 1s ease-in-out forwards;
+}
+
+/* 成長エフェクト */
+.garden-object.effect.growth-burst {
+  animation: grow 0.8s var(--transition-bounce) forwards;
+}
+
+/* =====================================================
+   タップ範囲拡張（小さいオブジェクト用）
+   ===================================================== */
+.garden-object.small::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+}
+
+/* =====================================================
+   選択状態
+   ===================================================== */
+.garden-object.selected {
+  z-index: calc(var(--z-effects) + 1);
+}
+
+.garden-object.selected::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border: 3px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  animation: sparkle 1s ease-in-out infinite;
+}
+
+/* =====================================================
+   ドラッグ中のオブジェクト
+   ===================================================== */
+.garden-object.dragging {
+  opacity: 0.8;
+  z-index: var(--z-modal);
+  transform: translate(-50%, -100%) scale(1.1);
+  box-shadow: var(--shadow-lg);
+}
+
+/* =====================================================
+   配置プレビュー
+   ===================================================== */
+.garden-object.preview {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.garden-object.preview.valid {
+  opacity: 0.7;
+}
+
+.garden-object.preview.invalid {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+/* =====================================================
+   iPhone SE2 最適化 (375x667px)
+   ===================================================== */
+@media screen and (max-width: 375px) and (max-height: 667px) {
+  .garden-container {
+    height: calc(100dvh - var(--nav-height));  /* 667 - 60 = 607px */
+  }
+
+  /* SE2では少し小さめのオブジェクト */
+  .garden-object.plant.stage-3 img {
+    width: 56px;
+    height: 64px;
+  }
+
+  .garden-object.resident img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .garden-object.building img {
+    width: 72px;
+    height: 72px;
+  }
+}

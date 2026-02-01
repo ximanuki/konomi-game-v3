@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#7BC47F">
+  <meta name="description" content="ふしぎなたねで世界を作ろう">
+
+  <title>まほうのにわ</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="./assets/images/icons/icon-180.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/garden.css">
+  <link rel="stylesheet" href="./css/ui.css">
+  <link rel="stylesheet" href="./css/animations.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- メインコンテンツ -->
+    <main id="main-content">
+      <!-- 庭ビュー -->
+      <div id="garden" class="garden-container"></div>
+
+      <!-- コレクション画面（初期は非表示） -->
+      <div id="collection-container" class="collection-screen" style="display: none;"></div>
+    </main>
+
+    <!-- 下部ナビゲーション -->
+    <nav class="nav bottom-nav">
+      <button class="nav-item active" data-tab="home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">おにわ</span>
+      </button>
+      <button class="nav-item" data-tab="collection">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">ずかん</span>
+      </button>
+      <button class="nav-item" data-tab="shop">
+        <span class="nav-icon">🏪</span>
+        <span class="nav-label">おみせ</span>
+      </button>
+      <button class="nav-item" data-tab="settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">せってい</span>
+      </button>
+    </nav>
+
+    <!-- トースト表示エリア -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- モーダル表示エリア -->
+    <div id="modal-container" class="modal-container"></div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="./js/app.js" type="module"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('SW registered:', registration.scope);
+          })
+          .catch(error => {
+            console.log('SW registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
