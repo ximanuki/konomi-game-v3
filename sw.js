@@ -7,7 +7,7 @@
 const BASE_PATH = self.location.pathname.replace(/\/sw\.js$/, '/');
 
 // キャッシュ名（バージョン管理）
-const CACHE_NAME = 'mahounoniwa-v2';
+const CACHE_NAME = 'mahounoniwa-v3';
 
 // キャッシュ対象（相対パス）- Phase 2 で実際に存在するファイルのみ
 const PRECACHE = [

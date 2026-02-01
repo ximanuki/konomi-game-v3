@@ -225,9 +225,190 @@ function renderWelcomeScreen(container) {
   if (startBtn) {
     startBtn.addEventListener('click', () => {
       Toast.success('ゲームスタート！');
-      container.innerHTML = '<p style="text-align:center;padding:20px;color:#666;">🌱 たねをうえてみよう！</p>';
+      startGame(container);
     });
   }
+}
+
+/**
+ * ゲームを開始する
+ * @param {HTMLElement} container - コンテナ要素
+ */
+function startGame(container) {
+  // 庭のメイン画面を表示
+  container.innerHTML = `
+    <div class="garden-main" style="
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #87CEEB 0%, #B5E7FF 30%, #A8D9AB 60%, #7BC47F 100%);
+      position: relative;
+      overflow: hidden;
+    ">
+      <!-- 庭のオブジェクトはここに描画される -->
+      <div id="garden-objects" style="width: 100%; height: 100%; position: relative;"></div>
+
+      <!-- たね選択ボタン（画面下部） -->
+      <div id="seed-selector" style="
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 12px;
+        padding: 12px 20px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      ">
+        <button class="seed-btn" data-seed="green" style="
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          border: 3px solid #5A9E5E;
+          background: #7BC47F;
+          font-size: 24px;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">🟢</button>
+        <button class="seed-btn" data-seed="pink" style="
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          border: 3px solid #E89DA8;
+          background: #FFB6C1;
+          font-size: 24px;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">🩷</button>
+        <button class="seed-btn" data-seed="blue" style="
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          border: 3px solid #5CACEE;
+          background: #87CEEB;
+          font-size: 24px;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">🔵</button>
+        <button class="seed-btn" data-seed="yellow" style="
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          border: 3px solid #DAA520;
+          background: #FFD700;
+          font-size: 24px;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">🟡</button>
+      </div>
+
+      <!-- ヒント表示 -->
+      <div id="hint-text" style="
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 20px;
+        font-size: 1.1em;
+        color: #2e7d32;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      ">🌱 たねをえらんで にわをタップ！</div>
+    </div>
+  `;
+
+  // 選択中のたね
+  let selectedSeed = null;
+
+  // たねボタンのイベント
+  const seedButtons = container.querySelectorAll('.seed-btn');
+  seedButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      // 前の選択を解除
+      seedButtons.forEach(b => {
+        b.style.transform = 'scale(1)';
+        b.style.boxShadow = 'none';
+      });
+      // 新しい選択
+      selectedSeed = btn.dataset.seed;
+      btn.style.transform = 'scale(1.2)';
+      btn.style.boxShadow = '0 0 15px rgba(0,0,0,0.3)';
+
+      const seedNames = {
+        green: 'みどりのたね',
+        pink: 'ピンクのたね',
+        blue: 'あおのたね',
+        yellow: 'きいろのたね'
+      };
+      document.getElementById('hint-text').textContent =
+        `✨ ${seedNames[selectedSeed]}をえらんだ！にわをタップしてうえよう`;
+    });
+  });
+
+  // 庭をタップしてたねを植える
+  const gardenObjects = document.getElementById('garden-objects');
+  gardenObjects.addEventListener('click', (e) => {
+    if (!selectedSeed) {
+      Toast.info('まず たねを えらんでね！');
+      return;
+    }
+
+    const rect = gardenObjects.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // たねを植える（視覚的な表示）
+    const seedEmoji = {
+      green: '🌱',
+      pink: '🌸',
+      blue: '💧',
+      yellow: '⭐'
+    };
+
+    const plantedSeed = document.createElement('div');
+    plantedSeed.style.cssText = `
+      position: absolute;
+      left: ${x}px;
+      top: ${y}px;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      animation: plant-bounce 0.5s ease;
+      cursor: pointer;
+    `;
+    plantedSeed.textContent = seedEmoji[selectedSeed];
+    gardenObjects.appendChild(plantedSeed);
+
+    Toast.success('たねをうえたよ！🌱');
+
+    // 成長アニメーション（3秒後に花に変わる）
+    setTimeout(() => {
+      const flowers = ['🌸', '🌺', '🌻', '🌷', '🌼', '💐'];
+      plantedSeed.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+      plantedSeed.style.fontSize = '48px';
+      plantedSeed.style.animation = 'grow-flower 0.5s ease';
+      Toast.success('おはなが さいたよ！🎉');
+    }, 3000);
+  });
+
+  // アニメーションスタイルを追加
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes plant-bounce {
+      0% { transform: translate(-50%, -50%) scale(0); }
+      50% { transform: translate(-50%, -50%) scale(1.3); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    @keyframes grow-flower {
+      0% { transform: translate(-50%, -50%) scale(0.5); }
+      50% { transform: translate(-50%, -50%) scale(1.2); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    .seed-btn:active {
+      transform: scale(0.9) !important;
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 /**
