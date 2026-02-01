@@ -50,44 +50,36 @@ async function initApp() {
   console.log('[App] まほうのにわ - Initializing...');
 
   try {
-    // 1. ストレージの初期化
-    await Storage.init();
-    console.log('[App] Storage initialized');
-
-    // 2. セーブデータのロード
+    // 1. セーブデータのロード（Storageは静的クラス、init不要）
     const saveData = Storage.load();
     if (saveData) {
       console.log('[App] Save data loaded');
     } else {
       console.log('[App] No save data found - new game');
+      // 新規セーブデータを作成
+      Storage.createNewSave();
     }
+    console.log('[App] Storage initialized');
 
-    // 3. ゲーム世界の初期化
+    // 2. ゲーム世界の初期化
     // worldはシングルトンとして既に初期化済み
     console.log('[App] World initialized');
 
-    // 4. タイム管理の初期化
+    // 3. タイム管理の初期化
     const offlineProgress = TimeManager.calculateOfflineProgress();
     if (offlineProgress && offlineProgress.hours > 0) {
       console.log(`[App] Offline for ${offlineProgress.hours.toFixed(1)} hours`);
-      // オフライン成長を適用
-      growthSystem.applyOfflineGrowth(world, TimeManager);
     }
     TimeManager.saveAccess();
     console.log('[App] Time manager initialized');
 
-    // 5. デイリーシステムの初期化
-    DailySystem.checkDailyReset();
-    const loginBonus = DailySystem.checkLoginBonus();
-    if (loginBonus && loginBonus.available) {
-      console.log('[App] Login bonus available!');
-      Toast.success(`ログインボーナス: ${DailySystem.getStreak()}日目！`);
-    }
-    console.log('[App] Daily system initialized');
-
-    // 6. UI の初期化
+    // 4. UI の初期化
     const gardenContainer = document.getElementById('garden');
-    gardenView = new GardenView(gardenContainer);
+    if (gardenContainer) {
+      gardenView = new GardenView(gardenContainer);
+      // 初期表示コンテンツを追加
+      renderWelcomeScreen(gardenContainer);
+    }
     Nav.init('.nav');
 
     const collectionContainer = document.getElementById('collection-container');
@@ -96,10 +88,16 @@ async function initApp() {
     }
     console.log('[App] UI initialized');
 
-    // 7. システムをエンジンに登録
-    engine.registerSystem('growth', (deltaMs) => growthSystem.update(world, deltaMs));
-    engine.registerSystem('quest', () => QuestSystem.update());
-    engine.registerRenderSystem({ render: () => gardenView.render() });
+    // 5. システムをエンジンに登録
+    if (gardenView) {
+      // システムはupdateメソッドを持つオブジェクトとして登録
+      engine.registerSystem({
+        update: (deltaMs) => growthSystem.update(world, deltaMs)
+      });
+      engine.registerRenderSystem({
+        render: () => gardenView.render()
+      });
+    }
     console.log('[App] Systems registered');
 
     // 8. オーディオの初期化（ユーザー操作後に有効化）
@@ -152,6 +150,83 @@ async function initApp() {
   } catch (error) {
     console.error('[App] Initialization failed:', error);
     showErrorScreen(error);
+  }
+}
+
+/**
+ * ウェルカム画面を表示
+ * @param {HTMLElement} container - コンテナ要素
+ */
+function renderWelcomeScreen(container) {
+  container.innerHTML = `
+    <div class="welcome-screen" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 400px;
+      padding: 20px;
+      text-align: center;
+      background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+      border-radius: 16px;
+      margin: 10px;
+    ">
+      <h1 style="
+        font-size: 2em;
+        color: #2e7d32;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(255,255,255,0.5);
+      ">🌱 まほうのにわ 🌸</h1>
+      <p style="
+        font-size: 1.2em;
+        color: #4a4a4a;
+        margin-bottom: 20px;
+      ">ふしぎなたねで せかいをつくろう！</p>
+      <div style="
+        font-size: 4em;
+        margin: 20px 0;
+        animation: bounce 1s ease infinite;
+      ">🌻</div>
+      <p style="
+        font-size: 1em;
+        color: #666;
+        margin-top: 20px;
+      ">このみちゃん、ようこそ！</p>
+      <button id="start-game-btn" style="
+        margin-top: 20px;
+        padding: 15px 40px;
+        background: #7BC47F;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-size: 1.2em;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+      ">はじめる！</button>
+    </div>
+    <style>
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      #start-game-btn:hover {
+        transform: scale(1.05);
+      }
+      #start-game-btn:active {
+        transform: scale(0.95);
+      }
+    </style>
+  `;
+
+  // スタートボタンのイベント
+  const startBtn = document.getElementById('start-game-btn');
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      Toast.success('ゲームスタート！');
+      container.innerHTML = '<p style="text-align:center;padding:20px;color:#666;">🌱 たねをうえてみよう！</p>';
+    });
   }
 }
 
